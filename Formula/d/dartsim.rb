@@ -1,10 +1,9 @@
 class Dartsim < Formula
   desc "Dynamic Animation and Robotics Toolkit"
   homepage "https://dartsim.github.io/"
-  url "https://github.com/dartsim/dart/archive/refs/tags/v6.13.2.tar.gz"
-  sha256 "02699a8f807276231c80ffc5dbc3f66dc1c3612364340c91bcad63a837c01576"
+  url "https://github.com/dartsim/dart/archive/refs/tags/v6.14.0.tar.gz"
+  sha256 "f3fdccb2781d6a606c031f11d6b1fdf5278708c6787e3ab9a67385d9a19a60ea"
   license "BSD-2-Clause"
-  revision 3
 
   bottle do
     sha256                               arm64_sonoma:   "d482ac5d4fced6f80b4161342f6532fd736fdbc2ba536d03d108205597fe16f0"
@@ -17,7 +16,9 @@ class Dartsim < Formula
   end
 
   depends_on "cmake" => :build
+  depends_on "doxygen" => :build
   depends_on "pkg-config" => :build
+
   depends_on "assimp"
   depends_on "bullet"
   depends_on "eigen"
@@ -29,6 +30,7 @@ class Dartsim < Formula
   depends_on "nlopt"
   depends_on "ode"
   depends_on "open-scene-graph"
+  depends_on "pagmo"
   depends_on "spdlog"
   depends_on "tinyxml2"
   depends_on "urdfdom"
@@ -37,8 +39,13 @@ class Dartsim < Formula
 
   fails_with gcc: "5"
 
+  # Include CTest for BUILD_TESTING option, upstream pr ref, https://github.com/dartsim/dart/pull/1819
+  patch do
+    url "https://github.com/dartsim/dart/commit/6de3bd8aede22c8dda93ba1147d3cfa97c9c8f02.patch?full_index=1"
+    sha256 "d26dcb302cb7ab0491db3250e5af47c7904cdd80c6b70f9f61eee970175ece8b"
+  end
+
   def install
-    ENV.cxx11
     args = std_cmake_args
 
     if OS.mac?
@@ -47,10 +54,11 @@ class Dartsim < Formula
       args << "-DGLUT_glut_LIBRARY=#{glut_lib}"
     end
 
-    mkdir "build" do
-      system "cmake", "..", *args, "-DCMAKE_INSTALL_RPATH=#{rpath}"
-      system "make", "install"
-    end
+    args << "-DBUILD_TESTING=OFF"
+
+    system "cmake", "-S", ".", "-B", "build", "-DCMAKE_INSTALL_RPATH=#{rpath}", *args
+    system "cmake", "--build", "build"
+    system "cmake", "--install", "build"
 
     # Clean up the build file garbage that has been installed.
     rm_r Dir["#{share}/doc/dart/**/CMakeFiles/"]
