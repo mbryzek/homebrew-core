@@ -1,16 +1,10 @@
 class Watchman < Formula
   desc "Watch files and take action when they change"
   homepage "https://github.com/facebook/watchman"
+  url "https://github.com/facebook/watchman/archive/refs/tags/v2024.06.24.00.tar.gz"
+  sha256 "e20cab7c91f87cb1026441e730962a33595fdc3b11e39c128efb70e86d7ff3f3"
   license "MIT"
   head "https://github.com/facebook/watchman.git", branch: "main"
-
-  stable do
-    url "https://github.com/facebook/watchman/archive/refs/tags/v2024.06.17.00.tar.gz"
-    sha256 "70c70101af0fdfd12386bc2529bd61f1e34f5d0709e155ba06d6457028685298"
-
-    # rust build patch, upstream commit ref, https://github.com/facebook/watchman/commit/58a8b4e39385d5e8ef8dfd12c1f5237177340e10
-    patch :DATA
-  end
 
   bottle do
     sha256 cellar: :any,                 arm64_sonoma:   "fcf5691a1b200cd867fd382c6800525cdd2d4f974dd07691da3c17d3eec1b3d8"
@@ -91,17 +85,3 @@ class Watchman < Formula
     assert_equal(version.to_s, shell_output("#{bin}/watchman -v").chomp)
   end
 end
-
-__END__
-diff --git a/watchman/rust/watchman_client/src/lib.rs b/watchman/rust/watchman_client/src/lib.rs
-index a53e60a..dc315fd 100644
---- a/watchman/rust/watchman_client/src/lib.rs
-+++ b/watchman/rust/watchman_client/src/lib.rs
-@@ -587,6 +587,7 @@ impl ClientTask {
-         use serde::Deserialize;
-         #[derive(Deserialize, Debug)]
-         pub struct Unilateral {
-+            #[allow(unused)]
-             pub unilateral: bool,
-             pub subscription: String,
-             #[serde(default)]
